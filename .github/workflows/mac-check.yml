@@ -1,4 +1,4 @@
-# Mac 앱이 실제로 켜지는지 확인한다. 빌드만 하고 릴리스에는 올리지 않는다.
+# Mac 앱이 실제로 켜지는지 확인한다. dmg를 만들어 설치하는 과정까지 흉내 내고, 릴리스에는 올리지 않는다.
 name: mac-check
 
 on:
@@ -15,15 +15,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run bundle-data
-      - name: 실행 테스트
+      - run: npx electron-builder --mac dmg --arm64 --publish never
+      - name: dmg에서 설치하고 15초 실행
         run: |
           set +e
-          try() { echo "=== $1"; shift; ELECTRON_ENABLE_LOGGING=1 "$@" > run.log 2>&1 & P=$!; sleep 12
-            if kill -0 $P 2>/dev/null; then echo "RESULT: OK"; kill $P; else wait $P; echo "RESULT: 종료 exit=$?"; fi; head -15 run.log; }
-          E=node_modules/electron/dist/Electron.app/Contents/MacOS/Electron
-          try "기본 Electron, 빈 앱" $E --version
-          echo 'require("electron").app.whenReady().then(()=>{const w=new (require("electron").BrowserWindow)();w.loadURL("about:blank")})' > /tmp/min.js
-          try "기본 Electron, 최소 창" $E /tmp/min.js
-          try "기본 Electron, 우리 앱" $E .
-          npx electron-builder --mac dir --arm64 --publish never -c.productName=BenefitCalendar > /dev/null 2>&1
-          try "빌드, 영문 이름" "dist/mac-arm64/BenefitCalendar.app/Contents/MacOS/BenefitCalendar"
+          DMG=$(ls dist/*.dmg | head -1); echo "DMG=$DMG"
+          hdiutil attach "$DMG" -mountpoint /tmp/dmg -nobrowse -quiet
+          cp -R /tmp/dmg/BenefitCalendar.app /tmp/; hdiutil detach /tmp/dmg -quiet
+          codesign --verify --deep --strict /tmp/BenefitCalendar.app && echo "SIGN: OK"
+          /tmp/BenefitCalendar.app/Contents/MacOS/BenefitCalendar > run.log 2>&1 & P=$!; sleep 15
+          if kill -0 $P 2>/dev/null; then echo "RESULT: OK"; kill $P; else wait $P; echo "RESULT: 종료 exit=$?"; head -20 run.log; fi

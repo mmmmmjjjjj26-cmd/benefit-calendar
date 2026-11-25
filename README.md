@@ -29,7 +29,7 @@ build/icon.png        앱 아이콘
 2. GitHub 저장소 → Actions 탭 → `release` → `Run workflow`
 3. 빌드가 끝나면 (10분쯤) Releases에 `v0.1.1`이 생기고 설치 파일이 붙는다
    - Windows: `benefit-calendar-setup-0.1.1.exe`
-   - Mac: `benefit-calendar-0.1.1-mac.dmg`
+   - Mac: `benefit-calendar-0.1.1-mac-arm64.dmg`, `benefit-calendar-0.1.1-mac-x64.dmg`
 
 이미 설치한 사용자는 다음에 앱을 열 때
 - Windows: 자동으로 받아서 업데이트
@@ -43,7 +43,7 @@ build/icon.png        앱 아이콘
 "손상되었습니다"라고 나오면 터미널에서 아래 한 줄을 실행한 뒤 다시 여세요.
 
 ```
-xattr -cr "/Applications/내 혜택 캘린더.app"
+xattr -cr /Applications/BenefitCalendar.app
 ```
 
 ## 내 컴퓨터에서 실행해보기 (선택)
