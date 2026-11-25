@@ -69,7 +69,7 @@ function conditions(c) {
 // ---- 대상 집단: 코드에 없는 대상(자녀·임신·노인·신혼 등)을 서비스명과 지원대상 첫머리에서 찾는다 ----
 const NEED = {
   child: /영유아|아동|자녀|양육|보육|아이돌봄|어린이|유치원|신생아|육아|다자녀|미취학/,
-  preg: /임신|임산부|임부|산모|출산|난임|산후|태아/,
+  preg: /임신|임산부|임부|산모|출산|난임|불임|난자|정자|산후|태아/,
   senior: /노인|어르신|고령|경로|(6[05]|7[05]|80)세\s*이상/,
   married: /신혼|예비부부|부부|배우자/,
   disab: /장애/,
@@ -116,6 +116,8 @@ const condById = new Map(conds.map((c) => [c.서비스ID, c]));
 const programs = [];
 for (const s of list) {
   if (!/개인|가구/.test(s.사용자구분 || '')) continue; // 법인·소상공인 전용은 뺀다
+  const cc = condById.get(s.서비스ID);
+  if (cc && Object.keys(cc).some((k) => /^JA[12]\d{3}$/.test(k) && cc[k] === 'Y')) continue; // 창업자·기업·단체 조건이 붙은 서비스도 뺀다
   const a = area(s), c = conditions(condById.get(s.서비스ID));
   const text = `${s.선정기준 || ''}\n${s.지원대상 || ''}`;
   const p = {
