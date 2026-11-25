@@ -1,0 +1,34 @@
+# Mac 앱이 실제로 켜지는지 확인한다. 빌드만 하고 릴리스에는 올리지 않는다.
+name: mac-check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [universal, arm64]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run bundle-data
+      - run: npx electron-builder --mac dir --${{ matrix.arch }} --publish never
+      - name: 앱을 15초 실행하고 로그 확인
+        run: |
+          sw_vers; uname -m
+          APP=$(ls -d dist/mac*/*.app | head -1); echo "APP=$APP"
+          codesign -dv "$APP" 2>&1 | head -5 || true
+          /usr/libexec/PlistBuddy -c "Print :ElectronAsarIntegrity" "$APP/Contents/Info.plist" || true
+          BIN="$APP/Contents/MacOS/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Contents/Info.plist")"
+          set +e
+          ELECTRON_ENABLE_LOGGING=1 ELECTRON_ENABLE_STACK_DUMPING=1 "$BIN" > run.log 2>&1 &
+          PID=$!; sleep 15
+          if kill -0 $PID 2>/dev/null; then echo "RESULT: 15초 동안 정상 실행 중"; kill $PID; else wait $PID; echo "RESULT: 종료됨 exit=$?"; fi
+          head -60 run.log
