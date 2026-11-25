@@ -3,14 +3,14 @@ const KEY = process.env.DATA_GO_KR_KEY;
 if (!KEY) { console.log('키 없음: DATA_GO_KR_KEY Secret을 확인해줘'); process.exit(1); }
 const BASE = 'https://api.odcloud.kr/api/gov24/v3';
 async function get(path, perPage) {
-  const u = `${BASE}/${path}?page=1&perPage=${perPage}&returnType=JSON&serviceKey=${encodeURIComponent(KEY)}`;
+  const u = `${BASE}/${path}?page=1&perPage=${perPage}&returnType=JSON&serviceKey=${KEY.includes('%')?KEY:encodeURIComponent(KEY)}`;
   const r = await fetch(u); const t = await r.text();
   try { return { status: r.status, j: JSON.parse(t) }; } catch { return { status: r.status, text: t.slice(0, 300) }; }
 }
 for (const [p, n] of [['serviceList', 300], ['serviceDetail', 2], ['supportConditions', 1000]]) {
   const { status, j, text } = await get(p, n);
   console.log(`\n##### ${p} HTTP ${status} total=${j?.totalCount} matched=${j?.matchCount}`);
-  if (!j) { console.log(text); continue; }
+  if (!j || status !== 200) { console.log('응답:', text || JSON.stringify(j).slice(0,300), '| 키 형식:', KEY.includes('%')?'Encoding':'Decoding', '| 길이', KEY.length); break; }
   const d = j.data || [];
   if (p === 'supportConditions') {
     const cnt = {}; d.forEach(x => Object.entries(x).forEach(([k, v]) => { if (v != null && v !== '') cnt[k] = (cnt[k] || 0) + 1; }));
