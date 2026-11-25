@@ -33,6 +33,19 @@ async function fetchAll(endpoint) {
 // ---- 지역 ----
 const SIDO = [['서울', '서울'], ['부산', '부산'], ['대구', '대구'], ['인천', '인천'], ['광주', '광주'], ['대전', '대전'], ['울산', '울산'], ['세종', '세종'], ['경기', '경기'], ['강원', '강원'], ['충북', '충청북|충북'], ['충남', '충청남|충남'], ['전북', '전라북|전북'], ['전남', '전라남|전남'], ['경북', '경상북|경북'], ['경남', '경상남|경남'], ['제주', '제주']];
 const sidoOf = (name) => { const s = String(name || '').replace(/\s/g, ''); return SIDO.find(([, re]) => new RegExp(`^(${re})`).test(s))?.[0] || null; };
+// 시군구 이름 → 시도 (이름이 여러 시도에 있으면 쓰지 않음). 기관명이 '용산구시설관리공단'처럼 시도 없이 시작할 때 쓴다.
+let SGG = [];
+function buildSgg(list) {
+  const m = new Map();
+  for (const s of list) {
+    if (s.소관기관유형 !== '시군구') continue;
+    const [sido, first] = String(s.소관기관명 || '').trim().split(/\s+/);
+    if (!first || !sidoOf(sido)) continue;
+    if (!m.has(first)) m.set(first, new Set());
+    m.get(first).add(sido);
+  }
+  SGG = [...m].filter(([, set]) => set.size === 1).map(([name, set]) => [name, [...set][0]]).sort((a, b) => b[0].length - a[0].length);
+}
 function area(svc) {
   const type = svc.소관기관유형, name = String(svc.소관기관명 || '').trim();
   if (type === '시군구') {
@@ -41,7 +54,12 @@ function area(svc) {
     if (sidoOf(sido)) return { scope: 'sido', sido }; // 세종처럼 시군구가 없는 곳
   }
   if (type === '광역시도' && sidoOf(name)) return { scope: 'sido', sido: name.split(/\s+/)[0] };
-  if (['지방출자_출연기관', '지방공기업', '교육청'].includes(type) && sidoOf(name)) return { scope: 'sido', sido: sidoOf(name) };
+  if (['지방출자_출연기관', '지방공기업', '교육청'].includes(type)) {
+    if (sidoOf(name)) return { scope: 'sido', sido: sidoOf(name) };
+    const flat = name.replace(/\s/g, ''), hit = SGG.find(([n]) => flat.startsWith(n));
+    if (hit) return { scope: 'sigungu', sido: hit[1], sigungu: hit[0] };
+    return { scope: 'local' }; // 지역 기관인데 어느 지역인지 모름
+  }
   return { scope: 'national' };
 }
 
@@ -68,7 +86,7 @@ function conditions(c) {
 
 // ---- 대상 집단: 코드에 없는 대상(자녀·임신·노인·신혼 등)을 서비스명과 지원대상 첫머리에서 찾는다 ----
 const NEED = {
-  child: /영유아|아동|자녀|양육|보육|아이돌봄|어린이|유치원|신생아|육아|다자녀|미취학/,
+  child: /영유아|아동|자녀|양육|보육|아이돌봄|어린이|유치원|신생아|육아|다자녀|미취학|입양|백일|돌잔치|출생/,
   preg: /임신|임산부|임부|산모|출산|난임|불임|난자|정자|산후|태아/,
   senior: /노인|어르신|고령|경로|(6[05]|7[05]|80)세\s*이상/,
   married: /신혼|예비부부|부부|배우자/,
@@ -113,6 +131,7 @@ const clip = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').replace(/^[○
 // ---- 실행 ----
 const [list, conds] = await Promise.all([fetchAll('serviceList'), fetchAll('supportConditions')]);
 const condById = new Map(conds.map((c) => [c.서비스ID, c]));
+buildSgg(list);
 const programs = [];
 for (const s of list) {
   if (!/개인|가구/.test(s.사용자구분 || '')) continue; // 법인·소상공인 전용은 뺀다
