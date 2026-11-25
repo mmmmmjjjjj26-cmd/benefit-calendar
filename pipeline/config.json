@@ -1,7 +1,201 @@
 {
-  "_설명": "1년에 한 번 손볼 값. median은 보건복지부 기준 중위소득(원, 1~7인 가구), 새해 기준이 발표되면 연도를 추가해. tax.tips는 연말정산 팁.",
+  "_설명": "1년에 한 번 손볼 값. median: 보건복지부 기준 중위소득(원, 1~7인 가구), 새해 기준이 발표되면 연도 추가. tax.tips: 연말정산 팁(tags: all·nohome·move). taxSchedule: 연말정산 일정(연도 바뀌면 날짜 갱신).",
   "median": {
-    "2026": [0, 2564238, 4199292, 5359036, 6494738, 7556719, 8555952, 9515150]
+    "2026": [
+      0,
+      2564238,
+      4199292,
+      5359036,
+      6494738,
+      7556719,
+      8555952,
+      9515150
+    ]
   },
-  "tax": { "tips": [] }
+  "tax": {
+    "year": 2026,
+    "tips": [
+      {
+        "id": "preview",
+        "title": "12월 18일 전에 미리보기로 예상 세액 보기",
+        "body": "홈택스 연말정산 미리보기는 12월 18일까지 열려 있어. 1~9월 카드 사용액이 들어가 있어서 남은 지출을 어떻게 할지 정할 수 있어.",
+        "src": "대한민국 정책브리핑",
+        "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=148974171",
+        "tags": [
+          "all"
+        ]
+      },
+      {
+        "id": "move-rent",
+        "title": "이사하면 바로 전입신고하고 계약서 주소 맞추기",
+        "body": "월세 세액공제는 무주택 세대주이고 총급여 8,000만원 이하일 때, 낸 월세의 15~17%를 연 1,000만원 한도로 돌려받아. 주민등록 주소와 임대차계약서 주소가 같아야 하니까 이사하면 바로 전입신고해.",
+        "src": "아이퀘스트 정리 (2026 기준)",
+        "url": "https://blog.iquest.co.kr/entry/%EC%9B%94%EC%84%B8-%EC%84%B8%EC%95%A1%EA%B3%B5%EC%A0%9C-%EC%9A%94%EA%B1%B4%C2%B7%ED%95%9C%EB%8F%84-%EC%B4%9D%EC%A0%95%EB%A6%AC",
+        "tags": [
+          "move",
+          "nohome"
+        ]
+      },
+      {
+        "id": "rent-docs",
+        "title": "월세 증빙 따로 챙기기",
+        "body": "월세는 간소화 서비스에 안 나와. 임대차계약서 사본, 주민등록등본, 월세 이체 내역을 모아서 회사에 내. 이사 전 집도 조건이 맞으면 그 기간 월세도 같이 넣을 수 있어.",
+        "src": "국세청 연말정산 안내",
+        "tags": [
+          "nohome"
+        ]
+      },
+      {
+        "id": "card-ratio",
+        "title": "남은 지출은 체크카드·현금영수증으로",
+        "body": "카드 공제는 총급여의 25%를 넘게 쓴 금액부터 시작해. 넘긴 다음부터는 공제율이 높은 체크카드·현금영수증(30%)이 신용카드(15%)보다 유리해. 미리보기에서 25%를 넘겼는지 먼저 봐.",
+        "src": "국세청 연말정산 안내",
+        "tags": [
+          "all"
+        ]
+      },
+      {
+        "id": "pension",
+        "title": "연금저축·IRP 납입은 12월 31일까지",
+        "body": "연금저축과 IRP에 넣은 돈은 세액공제를 받아. 올해 공제를 받으려면 12월 31일 전에 넣어야 하고, 은행 마감 시간도 확인해.",
+        "src": "국세청 연말정산 안내",
+        "tags": [
+          "all"
+        ]
+      },
+      {
+        "id": "hometown",
+        "title": "고향사랑기부 20만원까지 챙기기",
+        "body": "올해부터 10만원 넘고 20만원 이하인 기부금에 40% 세액공제가 붙어. 10만원 이하는 원래처럼 전액 공제야. 12월 31일까지 기부해야 올해 공제에 들어가.",
+        "src": "대한민국 정책브리핑",
+        "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=148974171",
+        "tags": [
+          "all"
+        ]
+      },
+      {
+        "id": "final-data",
+        "title": "1월 20일 이후 최종 자료로 제출",
+        "body": "간소화 서비스는 1월 15일쯤 열리지만 의료비 같은 자료가 늦게 올라와. 최종 확정 자료가 나오는 20일 이후에 내는 게 안전해.",
+        "src": "세정일보",
+        "url": "https://www.taxtimes.co.kr/mobile/article.html?no=273312",
+        "tags": [
+          "all"
+        ]
+      },
+      {
+        "id": "missing-docs",
+        "title": "간소화에 안 나오는 영수증 모으기",
+        "body": "안경·렌즈 구입비, 일부 종교단체·복지단체 기부금은 간소화에 안 잡힐 수 있어. 영수증을 직접 받아서 내.",
+        "src": "연말정산 실무 안내",
+        "tags": [
+          "all"
+        ]
+      },
+      {
+        "id": "may-fix",
+        "title": "빠뜨렸으면 5월에 다시 신고",
+        "body": "회사 제출 때 빠진 공제는 5월 종합소득세 신고 기간에 홈택스로 직접 신고하면 돌려받을 수 있어.",
+        "src": "국세청 연말정산 안내",
+        "tags": [
+          "all"
+        ]
+      },
+      {
+        "id": "next-year",
+        "title": "내년 바뀔 수 있는 것: 청년 월세 공제 확대",
+        "body": "2026년 세제개편안에는 청년 월세 세액공제율 17%, 한도 1,200만원 확대가 들어 있어. 아직 국회 심의 중이고, 통과돼도 대부분 2027년 귀속분부터라 이번 연말정산에는 지금 규정이 적용돼.",
+        "src": "글래스월렛 정리",
+        "url": "https://glasswallet.com/blog/tax-reform-2026-proposal-guide",
+        "tags": [
+          "all"
+        ]
+      }
+    ]
+  },
+  "taxSchedule": [
+    {
+      "category": "세금",
+      "scope": "national",
+      "requireJob": [
+        "재직"
+      ],
+      "taxAim": true,
+      "id": "tax-preview-2026",
+      "title": "연말정산 미리보기 (홈택스)",
+      "org": "국세청",
+      "applyStart": "2026-10-28",
+      "applyEnd": "2026-12-18",
+      "benefit": "1~9월 카드 사용액으로 예상 세액 계산",
+      "summary": "홈택스 → 장려금·연말정산·기부금 → 편리한 연말정산 → 연말정산 미리보기. 남은 지출 계획을 여기서 세워.",
+      "source": "대한민국 정책브리핑",
+      "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=148974171"
+    },
+    {
+      "category": "세금",
+      "scope": "national",
+      "requireJob": [
+        "재직"
+      ],
+      "taxAim": true,
+      "id": "tax-spend-deadline-2026",
+      "title": "올해 공제 지출 마감",
+      "org": "국세청",
+      "applyStart": "2026-12-31",
+      "applyEnd": "2026-12-31",
+      "benefit": "카드·연금저축·IRP·기부금은 12월 31일까지 낸 것만 공제",
+      "summary": "서류는 1월에 내도 지출은 올해 안에 끝나야 해.",
+      "source": "삼쩜삼",
+      "url": "https://blog.3o3.co.kr/2026-year-end-tax-period/"
+    },
+    {
+      "category": "세금",
+      "scope": "national",
+      "requireJob": [
+        "재직"
+      ],
+      "taxAim": true,
+      "id": "tax-simplified-2027",
+      "title": "연말정산 간소화 서비스 개통",
+      "org": "국세청",
+      "expected": "2027년 1월 15일쯤 (올해 1.15 개통, 1.20 최종 자료)",
+      "expectedMonth": "2027-01",
+      "benefit": "공제 자료 조회·다운로드, 회사 일괄 제공",
+      "summary": "의료비 등 늦게 올라오는 자료가 있어서 최종 확정 자료가 나오는 20일 이후에 내는 게 안전해.",
+      "source": "국세청",
+      "url": "https://www.nts.go.kr/nts/na/ntt/selectNttInfo.do?mi=&nttSn=1347979"
+    },
+    {
+      "category": "세금",
+      "scope": "national",
+      "requireJob": [
+        "재직"
+      ],
+      "taxAim": true,
+      "id": "tax-company-submit-2027",
+      "title": "회사에 연말정산 서류 제출",
+      "org": "다니는 회사",
+      "expected": "2027년 1~2월, 회사마다 마감이 달라",
+      "expectedMonth": "2027-01",
+      "benefit": "공제 신고서와 간소화에 없는 증빙 제출",
+      "summary": "회사 인사팀 공지로 마감일을 꼭 확인해.",
+      "source": "회사 안내"
+    },
+    {
+      "category": "세금",
+      "scope": "national",
+      "requireJob": [
+        "재직"
+      ],
+      "taxAim": true,
+      "id": "tax-may-filing-2027",
+      "title": "놓친 공제 신고 (종합소득세 신고 기간)",
+      "org": "국세청",
+      "applyStart": "2027-05-01",
+      "applyEnd": "2027-05-31",
+      "benefit": "연말정산 때 빠뜨린 공제를 직접 신고해서 환급",
+      "summary": "회사 제출 때 월세 같은 걸 빼먹었으면 5월에 홈택스로 직접 신고하면 돼.",
+      "source": "국세청"
+    }
+  ]
 }

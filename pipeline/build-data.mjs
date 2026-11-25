@@ -66,6 +66,30 @@ function conditions(c) {
   return o;
 }
 
+// ---- 대상 집단: 코드에 없는 대상(자녀·임신·노인·신혼 등)을 서비스명과 지원대상 첫머리에서 찾는다 ----
+const NEED = {
+  child: /영유아|아동|자녀|양육|보육|아이돌봄|어린이|유치원|신생아|육아|다자녀|미취학/,
+  preg: /임신|임산부|임부|산모|출산|난임|산후|태아/,
+  senior: /노인|어르신|고령|경로|(6[05]|7[05]|80)세\s*이상/,
+  married: /신혼|예비부부|부부|배우자/,
+  disab: /장애/,
+  vet: /보훈|국가유공자|참전|독립유공|5[·.]18/,
+  farm: /농업인|농업경영|농가|귀농|축산|임업인|산림경영|농촌/,
+  fish: /어업인|어가|귀어|어촌|수산업|해녀/,
+  lowinc: /기초생활|수급자|수급가구|차상위|저소득|취약계층/,
+  defector: /북한이탈|탈북/,
+  multicult: /다문화|결혼이민|외국인|이주/,
+  single: /한부모|조손|미혼모|청소년부모/,
+  student: /초등학생|중학생|고등학생|청소년|학생|대학생|대학원생/,
+  soldier: /장병|군인|제대군인|예비군|병역/,
+  patient: /환자|질환|치매|결핵|희귀|중독/,
+  victim: /피해자|피해 ?가구|이재민|범죄/,
+};
+function needs(svc) {
+  const head = `${svc.서비스명 || ''} ${String(svc.지원대상 || '').slice(0, 120)}`;
+  return Object.entries(NEED).filter(([, re]) => re.test(head)).map(([k]) => k);
+}
+
 // ---- 문장에서 뽑는 값 ----
 function residencyMonths(text) {
   const m = String(text || '').match(/(\d+)\s*(년|개월)\s*이상\s*(?:계속\s*|연속\s*)?(?:거주|주민등록)/);
@@ -100,6 +124,7 @@ for (const s of list) {
     benefit: clip(s.지원내용, 110), summary: clip(s.서비스목적요약 || s.지원대상, 140),
     ...a, ...c,
   };
+  const nd = needs(s); if (nd.length) p.need = nd;
   if (a.scope !== 'national') { const r = residencyMonths(text); if (r) p.residencyMonths = r; }
   const pr = s.신청기한유형 === '상시신청' ? null : period(s.신청기한);
   if (pr) Object.assign(p, pr);
@@ -116,12 +141,12 @@ const data = {
   version: 2,
   meta: { lastRun, note: '보조금24', median: { year, table: config.median[year] } },
   tax: config.tax,
-  programs,
+  programs: programs.concat(config.taxSchedule || []),
 };
 if (programs.length < 1000) { console.error(`서비스가 ${programs.length}건뿐이라 이상해서 저장하지 않았어.`); process.exit(1); }
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify(data));
 const cnt = (f) => programs.filter(f).length;
 console.log(`완료 ${lastRun}: 전체 ${list.length}건 중 개인·가구 ${programs.length}건, ${(fs.statSync(OUT).size / 1e6).toFixed(1)}MB`);
-console.log(`지역 ${cnt((p) => p.scope !== 'national')} · 나이 ${cnt((p) => p.ageMin || p.ageMax)} · 소득 ${cnt((p) => p.incomePct)} · 대상특성 ${cnt((p) => p.targets)} · 거주기간 ${cnt((p) => p.residencyMonths)} · 신청기간 ${cnt((p) => p.applyEnd)}`);
+console.log(`지역 ${cnt((p) => p.scope !== 'national')} · 나이 ${cnt((p) => p.ageMin || p.ageMax)} · 소득 ${cnt((p) => p.incomePct)} · 대상특성 ${cnt((p) => p.targets)} · 거주기간 ${cnt((p) => p.residencyMonths)} · 신청기간 ${cnt((p) => p.applyEnd)} · 대상집단 ${cnt((p) => p.need)}`);
 fs.writeFileSync(path.join(path.dirname(OUT), 'status.json'), JSON.stringify({ lastRun, programs: programs.length }) + '\n');

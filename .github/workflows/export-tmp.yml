@@ -1,0 +1,19 @@
+# 임시: 시뮬레이션용으로 data.json을 tmp-data 브랜치에 올린다. 확인 후 삭제.
+name: export-tmp
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node pipeline/build-data.mjs /tmp/out/data.json
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+      - run: |
+          cd /tmp/out && git init -q -b tmp-data && git add data.json
+          git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -qm tmp
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" tmp-data
