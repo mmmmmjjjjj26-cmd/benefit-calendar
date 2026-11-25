@@ -4,6 +4,12 @@ name: release
 
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: '빌드할 대상'
+        type: choice
+        options: [all, mac, windows]
+        default: all
 
 permissions:
   contents: write
@@ -29,7 +35,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        # Mac은 Intel 서버에서 빌드 (Apple 실리콘 서버는 자주 붐빔). Intel 서버에서도 arm64 앱이 만들어진다.
+        os: ${{ fromJSON(inputs.target == 'mac' && '["macos-15-intel"]' || inputs.target == 'windows' && '["windows-latest"]' || '["windows-latest","macos-15-intel"]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
