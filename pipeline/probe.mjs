@@ -1,5 +1,5 @@
 // API 응답 구조 확인용. 키는 환경변수로만 받고 출력하지 않는다.
-const KEY = process.env.DATA_GO_KR_KEY;
+const KEY = (process.env.DATA_GO_KR_KEY || '').trim();
 if (!KEY) { console.log('키 없음: DATA_GO_KR_KEY Secret을 확인해줘'); process.exit(1); }
 const BASE = 'https://api.odcloud.kr/api/gov24/v3';
 async function get(path, perPage) {
