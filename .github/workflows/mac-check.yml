@@ -6,10 +6,6 @@ on:
 
 jobs:
   check:
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [universal, arm64]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,16 +15,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run bundle-data
-      - run: npx electron-builder --mac dir --${{ matrix.arch }} --publish never
-      - name: 앱을 15초 실행하고 로그 확인
+      - name: 실행 테스트
         run: |
-          sw_vers; uname -m
-          APP=$(ls -d dist/mac*/*.app | head -1); echo "APP=$APP"
-          codesign -dv "$APP" 2>&1 | head -5 || true
-          /usr/libexec/PlistBuddy -c "Print :ElectronAsarIntegrity" "$APP/Contents/Info.plist" || true
-          BIN="$APP/Contents/MacOS/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Contents/Info.plist")"
           set +e
-          ELECTRON_ENABLE_LOGGING=1 ELECTRON_ENABLE_STACK_DUMPING=1 "$BIN" > run.log 2>&1 &
-          PID=$!; sleep 15
-          if kill -0 $PID 2>/dev/null; then echo "RESULT: 15초 동안 정상 실행 중"; kill $PID; else wait $PID; echo "RESULT: 종료됨 exit=$?"; fi
-          head -60 run.log
+          try() { echo "=== $1"; shift; ELECTRON_ENABLE_LOGGING=1 "$@" > run.log 2>&1 & P=$!; sleep 12
+            if kill -0 $P 2>/dev/null; then echo "RESULT: OK"; kill $P; else wait $P; echo "RESULT: 종료 exit=$?"; fi; head -15 run.log; }
+          E=node_modules/electron/dist/Electron.app/Contents/MacOS/Electron
+          try "기본 Electron, 빈 앱" $E --version
+          echo 'require("electron").app.whenReady().then(()=>{const w=new (require("electron").BrowserWindow)();w.loadURL("about:blank")})' > /tmp/min.js
+          try "기본 Electron, 최소 창" $E /tmp/min.js
+          try "기본 Electron, 우리 앱" $E .
+          npx electron-builder --mac dir --arm64 --publish never -c.productName=BenefitCalendar > /dev/null 2>&1
+          try "빌드, 영문 이름" "dist/mac-arm64/BenefitCalendar.app/Contents/MacOS/BenefitCalendar"
