@@ -1,0 +1,76 @@
+{
+  "name": "benefit-calendar",
+  "version": "0.1.0",
+  "description": "내 상황에 맞는 정부·지자체 혜택을 마감 순으로 모아 보는 캘린더",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "release": "electron-builder --publish always",
+    "bundle-data": "node scripts/bundle-data.js",
+    "predist": "npm run bundle-data"
+  },
+  "author": "mmmmmjjjjj26-cmd",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "electron": "^45.5.0",
+    "electron-builder": "^26.18.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
+  },
+  "productName": "내 혜택 캘린더",
+  "build": {
+    "appId": "io.github.benefitcalendar",
+    "productName": "내 혜택 캘린더",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "web/**",
+      "!web/index.orig.html",
+      "!web/data/data.json"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "mmmmmjjjjj26-cmd",
+        "repo": "benefit-calendar",
+        "releaseType": "release"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "benefit-calendar-setup-${version}.${ext}",
+      "executableName": "BenefitCalendar"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "내 혜택 캘린더"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "identity": null,
+      "artifactName": "benefit-calendar-${version}-mac.${ext}"
+    }
+  }
+}

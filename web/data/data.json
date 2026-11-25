@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "meta": {
+    "lastRun": "2026-11-25 07:52",
+    "note": "샘플 데이터",
+    "median": { "year": 2026, "table": [0, 2564238, 4199292, 5359036, 6494738, 7556719, 8555952, 9515150] }
+  },
+  "tax": { "tips": [] },
+  "programs": [
+    {"id":"seocho-cert-fee-2027","ageMax":39,"ageMin":19,"benefit":"응시료 연 최대 20만원, 합격 여부 무관","category":"일자리","expected":"2027년 3월쯤 (분기별 3·6·9·11월)","expectedMonth":"2027-03","extra":["올해 응시한 시험만 해당"],"org":"서초구","requireJob":["구직","학생","기타"],"scope":"sigungu","sido":"서울특별시","sigungu":"서초구","source":"헤럴드경제","summary":"어학·국가기술 등 약 900종. 분기마다 예산 소진 시 조기 마감.","title":"서초구 미취업 청년 자격증 응시료 지원","url":"https://www.heraldk.com/article/2026030116124326557"},
+    {"id":"seocho-deposit-interest-2027","ageMax":39,"ageMin":19,"benefit":"대출잔액의 2% 이내, 연 최대 100만원 (최대 3년)","category":"주거","expected":"2027년 3월쯤 (올해 3.10~3.31)","expectedMonth":"2027-03","extra":["연소득 6,000만원 이하","전용 60㎡ 이하 또는 보증금 3억 이하"],"org":"서초구 공동주택관리과","requireNoHome":true,"scope":"sigungu","sido":"서울특별시","sigungu":"서초구","source":"헤럴드경제","summary":"공고일 기준 서초구 전입 무주택 청년. 주택도시기금 전세대출·서울시 유사사업 수혜자는 제외.","title":"서초구 청년 전월세 보증금 대출이자 지원","url":"https://www.heraldk.com/article/2026030821180730131"},
+    {"id":"seoul-allowance-2027","ageMax":34,"ageMin":19,"benefit":"월 50만원 × 최대 6개월","category":"복지·문화","expected":"2027년 상반기 (올해 2차 5.27~5.29)","extra":["소득 기준 공고 확인"],"org":"서울시","requireJob":["구직"],"scope":"sido","sido":"서울특별시","source":"서울시","summary":"서울 거주 미취업 또는 단기근로 청년. 최종학력 졸업자.","title":"서울 청년수당","url":"https://news.seoul.go.kr/gov/archives/578136"},
+    {"id":"seoul-deposit-interest","ageMax":39,"ageMin":19,"applyEnd":null,"applyStart":null,"benefit":"하나은행 보증금 대출 최대 2억, 이자 연 최대 3.0% 지원","category":"주거","extra":["연소득 5,000만원 이하 (기혼은 부부합산 6,000만원)","세대주 또는 세대주 예정자"],"org":"서울시 주택정책과","requireNoHome":true,"scope":"sido","sido":"서울특별시","source":"서울주거포털","summary":"세대주 또는 세대주 예정 무주택 청년. 상시 신청. 서초구 보증금 이자지원과 중복 불가.","title":"서울시 청년 임차보증금 이자지원","url":"https://housing.seoul.go.kr/site/main/content/sh01_040901"},
+    {"id":"seoul-moving-fee-2027","ageMax":39,"ageMin":19,"benefit":"중개보수·이사비 최대 40만원 (생애 1회)","category":"주거","expected":"2027년 4월쯤 (올해 4월·8월 모집)","expectedMonth":"2027-04","extra":["소득·주택 요건 공고 확인","전입 시점 기준 공고 확인"],"org":"서울시","requireNoHome":true,"scope":"sido","sido":"서울특별시","source":"내 손안에 서울","summary":"서울로 전입하거나 서울 안에서 이사한 청년 대상. 12월 이사 영수증과 중개 계약서를 꼭 보관해둬.","title":"서울 청년 부동산 중개보수·이사비 지원","url":"https://mediahub.seoul.go.kr/archives/2019098"},
+    {"id":"seoul-rent-2027","ageMax":39,"ageMin":19,"benefit":"월 최대 20만원 × 12개월 (생애 1회)","category":"주거","expected":"2027년 5월쯤 (올해 5.6~5.19)","expectedMonth":"2027-05","extra":["중위소득 48% 초과 조건도 있음","보증금 8,000만원 이하·월세 60만원 이하"],"incomePct":150,"org":"서울시 주택정책과","requireNoHome":true,"scope":"sido","sido":"서울특별시","source":"서울주거포털","summary":"서울 월세 거주 청년 1인 가구 등. 2026년 기준 1만 5천 명 선정.","title":"서울시 청년월세지원","url":"https://housing.seoul.go.kr/site/main/content/sh01_060513"}
+  ]
+}
