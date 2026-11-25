@@ -1,6 +1,6 @@
 {
   "name": "benefit-calendar",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "내 상황에 맞는 정부·지자체 혜택을 마감 순으로 모아 보는 캘린더",
   "main": "main.js",
   "scripts": {
