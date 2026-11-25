@@ -181,6 +181,10 @@ form{padding:4px 16px 20px}.hist{grid-template-columns:1fr 1fr}}
 .onb .steps{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
 .onb #pf:not(.last) .save{display:none}
 .onb .save{justify-content:flex-end}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chips label{flex-direction:row;align-items:center;gap:8px;padding:0 14px;min-height:40px;border:1px solid var(--line);border-radius:999px;cursor:pointer;font-weight:500;color:var(--ink2)}
+.chips label:has(input:checked){border-color:var(--blue);color:var(--blue);background:light-dark(rgba(0,117,222,.06),rgba(78,163,242,.1))}
+.chips input{min-height:0;width:16px;height:16px;margin:0;padding:0;accent-color:var(--blue)}
 </style>
 
 </head>
@@ -189,7 +193,7 @@ form{padding:4px 16px 20px}.hist{grid-template-columns:1fr 1fr}}
   <h1>내 혜택 캘린더</h1>
   <div class="who" id="who"><span>내 정보를 불러오는 중</span></div>
   <div class="sum" id="sum" role="group" aria-label="판정별 개수">
-    <button data-f="ok" aria-pressed="true"><span class="n" id="c-ok">–</span><span class="l">지금 신청 가능</span></button>
+    <button data-f="ok" aria-pressed="true"><span class="n" id="c-ok">–</span><span class="l">조건 맞음</span></button>
     <button data-f="soon" aria-pressed="false"><span class="n" id="c-soon">–</span><span class="l">전입 후 가능</span></button>
     <button data-f="check" aria-pressed="false"><span class="n" id="c-check">–</span><span class="l">조건 확인 필요</span></button>
     <button data-f="week" aria-pressed="false"><span class="n" id="c-week">–</span><span class="l">7일 안에 마감</span></button>
@@ -242,7 +246,12 @@ form{padding:4px 16px 20px}.hist{grid-template-columns:1fr 1fr}}
         <label>무주택 여부<select id="f-nohome"><option value="">모름</option><option value="y">무주택</option><option value="n">주택 있음</option></select></label>
         <label>일 상태<select id="f-job"><option value="">선택 안 함</option><option>재직</option><option>구직</option><option>학생</option><option>자영업</option><option>기타</option></select></label>
         <label>혼인<select id="f-married"><option value="">선택 안 함</option><option value="n">미혼</option><option value="y">기혼</option></select></label>
+        <label>성별<select id="f-gender"><option value="">선택 안 함</option><option value="f">여성</option><option value="m">남성</option></select><span class="hint">여성·남성 전용 혜택 판정에만 써</span></label>
       </div>
+    </fieldset>
+    <fieldset><legend>해당하는 것</legend>
+      <p class="note">해당하는 게 있으면 골라줘. 이 대상만 받을 수 있는 혜택이 같이 보여. 없으면 그냥 넘어가도 돼.</p>
+      <div class="chips" id="f-tags"></div>
     </fieldset>
     <fieldset><legend>지금 주소</legend>
       <div class="row">
@@ -284,8 +293,11 @@ const pd=s=>{if(!s)return null;const[y,m,d]=String(s).split('-').map(Number);ret
 const fmt=d=>`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`;
 const addMonths=(d,n)=>{const x=new Date(d);x.setMonth(x.getMonth()+n);return x};
 const monthsBetween=(a,b)=>(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth()-(b.getDate()<a.getDate()?1:0);
-const normSido=s=>String(s||'').replace(/(특별시|광역시|특별자치시|특별자치도|도)$/,'').trim();
-const sameArea=(a,p)=>a&&normSido(a.sido)===normSido(p.sido)&&(p.scope!=='sigungu'||String(a.sigungu||'').trim()===String(p.sigungu||'').trim());
+const SIDO=[['서울','서울'],['부산','부산'],['대구','대구'],['인천','인천'],['광주','광주'],['대전','대전'],['울산','울산'],['세종','세종'],['경기','경기'],['강원','강원'],['충북','충청북|충북'],['충남','충청남|충남'],['전북','전라북|전북'],['전남','전라남|전남'],['경북','경상북|경북'],['경남','경상남|경남'],['제주','제주']];
+const normSido=s=>{s=String(s||'').replace(/\s/g,'');const f=SIDO.find(([,re])=>new RegExp('^('+re+')').test(s));return f?f[0]:s};
+const nsg=s=>String(s||'').replace(/\s/g,'');
+const sameSgg=(a,b)=>{a=nsg(a);b=nsg(b);return !!a&&!!b&&(a===b||a.startsWith(b)||b.startsWith(a))};
+const sameArea=(a,p)=>a&&normSido(a.sido)===normSido(p.sido)&&(p.scope!=='sigungu'||sameSgg(a.sigungu,p.sigungu));
 
 let me=null,progs=[],marks={},meta=null,filter='ok',picked=false,calMonth=today(),pickDay=null;
 calMonth.setDate(1);
@@ -303,6 +315,13 @@ function residentSince(addr,p){
   return start;
 }
 function ageAt(birth,date){const b=pd(birth);if(!b)return null;let a=date.getFullYear()-b.getFullYear();if(date.getMonth()<b.getMonth())a--;return a}
+function myCodes(me,now){
+  const s=new Set(me.tags||[]);
+  ({재직:['JA0326'],구직:['JA0327'],학생:['JA0317','JA0318','JA0319','JA0320']}[me.job]||[]).forEach(c=>s.add(c));
+  if(+me.hh===1)s.add('JA0404'); if(me.noHome==='y')s.add('JA0412');
+  if(me.plan?.date||(me.cur?.since&&monthsBetween(pd(me.cur.since),now)<12))s.add('JA0413');
+  return s;
+}
 function judge(p,me,now=today()){
   const R=[];const add=(t,text)=>R.push({t,text});
   const end=pd(p.applyEnd),start=pd(p.applyStart);
@@ -337,17 +356,26 @@ function judge(p,me,now=today()){
   }
   if(p.requireNoHome){ if(me.noHome==='y')add('ok','무주택'); else if(me.noHome==='n')add('no','무주택자 대상'); else add('check','무주택 여부 확인'); }
   if(p.requireJob?.length){ if(!me.job)add('check',`${p.requireJob.join('·')} 대상`); else add(p.requireJob.includes(me.job)?'ok':'no',`${p.requireJob.join('·')} 대상`); }
+  if(p.gender){const w=p.gender==='f'?'여성':'남성';if(!me.gender)add('check',`${w} 대상 (성별 입력 필요)`);else add(me.gender===p.gender?'ok':'no',`${w} 대상`)}
+  if(p.targets?.length){const mine=myCodes(me,now);
+    for(const t of p.targets){const hit=t.filter(c=>mine.has(c));
+      if(hit.length)add('ok',`${tl(hit)} 대상`);
+      else if((!me.job&&t.some(c=>/^JA03(1[7-9]|2[067])$/.test(c)))||(!me.noHome&&t.includes('JA0412')))add('check',`${tl(t)} 대상`);
+      else add('no',`${tl(t)} 대상`)}}
   for(const x of p.extra||[]) add('check',x);
   if(soonDate&&end&&soonDate>end){R.forEach(r=>{if(r.t==='soon')r.t='no'});add('no','이번 접수 기간 안에는 조건을 못 채워')}
   if(start&&start>now&&!R.some(r=>r.t==='no'))add('soon',`${fmt(start)} 접수 시작`);
   const st=R.some(r=>r.t==='no')?'no':R.some(r=>r.t==='soon')&&soonDate?'soon':R.some(r=>r.t==='check')?'check':'ok';
   return {status:st,reasons:R,soonDate};
 }
-const LABEL={ok:'신청 가능',soon:'전입 후 가능',check:'확인 필요',no:'해당 없음'};
+const LABEL={ok:'조건 맞음',soon:'전입 후 가능',check:'확인 필요',no:'해당 없음'};
+const TAGS=[['JA0313','농업인'],['JA0314','어업인'],['JA0315','축산업인'],['JA0316','임업인'],['JA0328','장애인'],['JA0329','국가보훈대상자'],['JA0330','질병·질환자'],['JA0401','다문화가족'],['JA0402','북한이탈주민'],['JA0403','한부모·조손가정'],['JA0411','다자녀가구'],['JA0414','확대가족'],['JA0301','예비부모·난임'],['JA0302','임산부'],['JA0303','출산·입양']];
+const TL=Object.fromEntries([...TAGS,['JA0317','초등학생'],['JA0318','중학생'],['JA0319','고등학생'],['JA0320','대학생'],['JA0326','근로자'],['JA0327','구직자'],['JA0404','1인가구'],['JA0412','무주택'],['JA0413','신규 전입']]);
+const tl=cs=>{const n=cs.map(c=>TL[c]||c);return n.length>3?n.slice(0,3).join('·')+` 등 ${n.length}종`:n.join('·')};
 
 function dday(p,now=today()){
   if(p.expected&&!p.applyEnd) return {big:'예정',sub:p.expected,days:99999};
-  const end=pd(p.applyEnd); if(!end) return {big:'상시',sub:'언제든 신청',days:Infinity};
+  const end=pd(p.applyEnd); if(!end) return {big:p.periodText?'수시':'상시',sub:p.periodText||'언제든 신청',days:Infinity};
   const d=Math.round((end-now)/DAY);
   if(d<0) return {big:'마감',sub:`${fmt(end)} 마감`,days:d};
   return {big:d===0?'D-DAY':'D-'+d,sub:`${fmt(end)} 마감`,days:d};
@@ -397,7 +425,7 @@ function render(){
   if(cat)L=L.filter(r=>r.p.category===cat);
   if(q)L=L.filter(r=>[r.p.title,r.p.org,r.p.benefit,r.p.summary].join(' ').includes(q));
   L.sort((a,b)=>a.dd.days-b.dd.days);
-  $('plist').innerHTML=L.length?listHTML(L):emptyHTML(more);
+  $('plist').innerHTML=L.length?listHTML(L.slice(0,showN))+(L.length>showN?`<li><button class="btn" type="button" id="morebtn" style="width:100%;justify-content:center">더 보기 (${L.length-showN}개 남음)</button></li>`:''):emptyHTML(more);
   if(progs.length)firstPaint=false;
   $('sync').textContent=meta?.lastRun?`마지막 확인 ${meta.lastRun} · 공고 ${progs.length}건${meta.note?' · '+meta.note:''}${offline?' · 오프라인 데이터':''}`:'';
   renderWho(); renderCal(all); renderTax();
@@ -459,7 +487,7 @@ function route(){
 function histRow(h={}){return `<div class="hist"><label>시도<input data-h="sido" value="${esc(h.sido)}"></label><label>시군구<input data-h="sigungu" value="${esc(h.sigungu)}"></label><label>전입<input type="month" data-h="from" value="${esc(h.from)}"></label><label>전출<input type="month" data-h="to" value="${esc(h.to)}"></label><button type="button" class="btn" data-del>삭제</button></div>`}
 function fillForm(){
   const m=me||{};const set=(id,v)=>{$(id).value=v??''};
-  set('f-birth',m.birth);set('f-hh',m.hh);set('f-income',m.income);set('f-nohome',m.noHome);set('f-job',m.job);set('f-married',m.married);
+  set('f-gender',m.gender);document.querySelectorAll('#f-tags input').forEach(i=>i.checked=(m.tags||[]).includes(i.value));set('f-birth',m.birth);set('f-hh',m.hh);set('f-income',m.income);set('f-nohome',m.noHome);set('f-job',m.job);set('f-married',m.married);
   set('f-csido',m.cur?.sido);set('f-csgg',m.cur?.sigungu);set('f-csince',m.cur?.since);
   set('f-psido',m.plan?.sido);set('f-psgg',m.plan?.sigungu);set('f-pdate',m.plan?.date);
   $('hist').innerHTML=(m.history||[]).map(histRow).join('');
@@ -467,19 +495,19 @@ function fillForm(){
 function readForm(){
   const v=id=>$(id).value.trim(),num=id=>v(id)===''?null:Number(v(id));
   const history=[...document.querySelectorAll('#hist .hist')].map(r=>{const o={};r.querySelectorAll('[data-h]').forEach(i=>o[i.dataset.h]=i.value.trim());return o}).filter(o=>o.sido||o.sigungu);
-  return {birth:v('f-birth'),hh:num('f-hh'),income:num('f-income'),noHome:v('f-nohome'),job:v('f-job'),married:v('f-married'),
+  return {gender:v('f-gender'),tags:[...document.querySelectorAll('#f-tags input:checked')].map(i=>i.value),birth:v('f-birth'),hh:num('f-hh'),income:num('f-income'),noHome:v('f-nohome'),job:v('f-job'),married:v('f-married'),
     cur:{sido:v('f-csido'),sigungu:v('f-csgg'),since:v('f-csince')},
     plan:v('f-pdate')?{sido:v('f-psido'),sigungu:v('f-psgg'),date:v('f-pdate')}:null,history,updatedAt:new Date().toISOString()};
 }
 
 /* ---- 저장: 개인 정보는 이 컴퓨터에만, 공고는 온라인 JSON에서 ---- */
-const DATA_URL='https://YOUR_ID.github.io/benefit-data/data.json'; // 데이터 파이프라인 만든 뒤 주소 교체
+const DATA_URL='https://mmmmmjjjjj26-cmd.github.io/benefit-calendar/data.json';
 const store={
   get(k,d){try{const v=localStorage.getItem('bc:'+k);return v==null?d:JSON.parse(v)}catch{return d}},
   set(k,v){try{localStorage.setItem('bc:'+k,JSON.stringify(v));return true}catch{return false}},
   del(k){try{localStorage.removeItem('bc:'+k)}catch{}}
 };
-let offline=false,step=0;
+let offline=false,step=0,showN=50;
 function msg(t,warn){const s=$('savemsg');s.textContent=t;s.className='note'+(warn?' warn':'')}
 function applyData(d){if(!d||!Array.isArray(d.programs))return false;progs=d.programs;meta=d.meta||null;tax=d.tax||null;return true}
 async function fetchJSON(u){const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);
@@ -505,6 +533,7 @@ function setOnb(on){
   if(on){step=0;showStep();if(location.hash!=='#me')location.hash='me'}
   route();
 }
+$('f-tags').innerHTML=TAGS.map(([c,l])=>`<label><input type="checkbox" value="${c}">${l}</label>`).join('');
 function boot(){
   me=store.get('profile',null);marks=store.get('marks',{});taxChecks=store.get('taxChecks',{});
   fillForm();setOnb(!me);render();loadData();
@@ -529,11 +558,12 @@ document.addEventListener('click',async e=>{
   if(b){const id=b.closest('[data-id]').dataset.id,st=b.dataset.mark,cur=marks[id]?.state;if(cur===st)delete marks[id];else marks[id]={state:st,at:new Date().toISOString()};store.set('marks',marks);render()}
   const w=e.target.closest('[data-why]');if(w){const id=w.closest('[data-id]').dataset.id;openWhy.has(id)?openWhy.delete(id):openWhy.add(id);render();return}
   const c=e.target.closest('.cell');if(c){const k=+c.dataset.k;pickDay=pickDay===k?null:k;renderCal(rows())}
-  const f=e.target.closest('#sum button');if(f){filter=f.dataset.f;picked=true;$('more').value='';if(location.hash!=='#list')location.hash='list';render()}
+  if(e.target.id==='morebtn'){showN+=50;render();return}
+  const f=e.target.closest('#sum button');if(f){filter=f.dataset.f;showN=50;picked=true;$('more').value='';if(location.hash!=='#list')location.hash='list';render()}
 });
 $('prev').addEventListener('click',()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()-1,1);pickDay=null;renderCal(rows())});
 $('next').addEventListener('click',()=>{calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,1);pickDay=null;renderCal(rows())});
-for(const id of['q','cat','more'])$(id).addEventListener('input',render);
+for(const id of['q','cat','more'])$(id).addEventListener('input',()=>{showN=50;render()});
 addEventListener('hashchange',route);
 /* ---- 연말정산 ---- */
 let tax=null,taxChecks={};

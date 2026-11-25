@@ -38,6 +38,9 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: 최신 공고를 앱 기본 데이터로 넣기 (실패하면 샘플 유지)
+        shell: bash
+        run: curl -fsSL https://mmmmmjjjjj26-cmd.github.io/benefit-calendar/data.json -o /tmp/d.json && mv /tmp/d.json web/data/data.json || echo '샘플 데이터 사용'
       - run: npm run bundle-data
       - name: 빌드하고 릴리스에 올리기
         run: npx electron-builder --publish always

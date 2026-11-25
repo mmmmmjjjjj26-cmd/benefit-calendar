@@ -1,0 +1,49 @@
+# 매일 아침 보조금24에서 전국 서비스를 받아 data.json을 만들고 GitHub Pages에 올린다.
+# 앱은 https://mmmmmjjjjj26-cmd.github.io/benefit-calendar/data.json 을 읽는다.
+# 실패하면 GitHub가 메일로 알려준다.
+name: data
+
+on:
+  schedule:
+    - cron: '17 21 * * *' # 매일 한국 시간 06:17
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 보조금24에서 공고 받기
+        run: node pipeline/build-data.mjs site/data.json
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+      - name: 다운로드 안내 페이지
+        run: cp pipeline/site-index.html site/index.html
+      - name: 실행 기록 남기기 (60일 자동 정지 방지)
+        run: |
+          cp site/status.json pipeline/status.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pipeline/status.json
+          git diff --cached --quiet || (git commit -m "data: $(jq -r .lastRun pipeline/status.json) 공고 $(jq -r .programs pipeline/status.json)건" && git push)
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
