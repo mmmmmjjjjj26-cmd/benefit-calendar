@@ -42,7 +42,7 @@ jobs:
           git add pipeline/status.json
           git diff --cached --quiet || (git commit -m "data: $(jq -r .lastRun pipeline/status.json) 공고 $(jq -r .programs pipeline/status.json)건" && git push)
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: site
       - id: deploy
