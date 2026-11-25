@@ -1,29 +1,19 @@
-// API 응답 구조 확인용. 키는 환경변수로만 받고 출력하지 않는다.
+// 지원조건 코드 뜻 검증용. 코드별로 그 코드만 해당하는 서비스 이름을 뽑는다. 키는 출력하지 않는다.
 const KEY = (process.env.DATA_GO_KR_KEY || '').trim();
-if (!KEY) { console.log('키 없음: DATA_GO_KR_KEY Secret을 확인해줘'); process.exit(1); }
 const BASE = 'https://api.odcloud.kr/api/gov24/v3';
-async function get(path, perPage) {
-  const u = `${BASE}/${path}?page=1&perPage=${perPage}&returnType=JSON&serviceKey=${KEY.includes('%')?KEY:encodeURIComponent(KEY)}`;
-  const r = await fetch(u); const t = await r.text();
-  try { return { status: r.status, j: JSON.parse(t) }; } catch { return { status: r.status, text: t.slice(0, 300) }; }
+const get = async (p, page, n) => (await (await fetch(`${BASE}/${p}?page=${page}&perPage=${n}&returnType=JSON&serviceKey=${KEY.includes('%') ? KEY : encodeURIComponent(KEY)}`)).json());
+for (const u of ['https://infuser.odcloud.kr/oas/docs?namespace=15113968/v1', 'https://infuser.odcloud.kr/api/stages/44436/api-docs']) {
+  try { const t = await (await fetch(u)).text(); const m = t.match(/JA0326[^,}]{0,80}/g); console.log('명세', u.slice(26, 70), t.length, m ? m.slice(0, 2) : '없음'); } catch (e) { console.log('명세 실패', e.message); }
 }
-for (const [p, n] of [['serviceList', 300], ['serviceDetail', 2], ['supportConditions', 1000]]) {
-  const { status, j, text } = await get(p, n);
-  console.log(`\n##### ${p} HTTP ${status} total=${j?.totalCount} matched=${j?.matchCount}`);
-  if (!j || status !== 200) { console.log('응답:', text || JSON.stringify(j).slice(0,300), '| 키 형식:', KEY.includes('%')?'Encoding':'Decoding', '| 길이', KEY.length); break; }
-  const d = j.data || [];
-  if (p === 'supportConditions') {
-    const cnt = {}; d.forEach(x => Object.entries(x).forEach(([k, v]) => { if (v != null && v !== '') cnt[k] = (cnt[k] || 0) + 1; }));
-    console.log('필드별 값 있는 개수 (1000건 중):', JSON.stringify(cnt));
-    console.log('예시:', JSON.stringify(d[0]));
-    const ages = d.filter(x => x.JA0110 || x.JA0111).slice(0, 3).map(x => [x.JA0110, x.JA0111]);
-    console.log('나이 예시:', JSON.stringify(ages));
-  } else if (p === 'serviceList') {
-    console.log('필드:', Object.keys(d[0] || {}).join(', '));
-    console.log('예시:', JSON.stringify(d[0]).slice(0, 1500));
-    const f = k => { const c = {}; d.forEach(x => { const v = String(x[k] ?? '').slice(0, 20); c[v] = (c[v] || 0) + 1; }); return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 12); };
-    console.log('신청기한 분포:', JSON.stringify(f('신청기한')));
-    console.log('소관기관유형:', JSON.stringify(f('소관기관유형')));
-    console.log('서비스분야:', JSON.stringify(f('서비스분야')));
-  } else console.log('예시:', JSON.stringify(d[0]).slice(0, 2500));
+let all = [];
+for (let p = 1; p <= 11; p++) { const j = await get('supportConditions', p, 1000); all = all.concat(j.data || []); }
+console.log('총', all.length);
+const groups = { 성별: /^JA010[12]$/, 소득: /^JA020/, 생애: /^JA03(0[1-3])$/, 직업학생: /^JA03(1[3-9]|2\d|30)$/, 가구: /^JA04/, 소상공인: /^JA1/, 법인: /^JA2/ };
+for (const [g, re] of Object.entries(groups)) {
+  const codes = Object.keys(all[0]).filter(k => re.test(k)).sort();
+  console.log(`\n## ${g}`);
+  for (const c of codes) {
+    const only = all.filter(x => x[c] === 'Y' && codes.every(k => k === c || x[k] !== 'Y'));
+    console.log(c, 'Y', all.filter(x => x[c] === 'Y').length, '| 단독', only.length, '|', only.slice(0, 4).map(x => x.서비스명.slice(0, 22)).join(' / '));
+  }
 }
